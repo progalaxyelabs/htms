@@ -1,4 +1,4 @@
-import { compile_wasm, init } from '@htms/compiler';
+import { compile_wasm, init } from '@progalaxyelabs/htms-compiler';
 import { readFile, writeFile, mkdir } from 'fs/promises';
 import { dirname, join, basename } from 'path';
 import { printDiagnostics } from './format-errors.js';

@@ -6,6 +6,7 @@
 mod templates;
 mod router;
 mod events;
+mod utils;
 
 use crate::ast::Program;
 use crate::analyzer::SymbolTable;
@@ -27,8 +28,8 @@ pub fn generate(
         files.push(router::generate(program, symbols));
     }
 
-    // Generate events
-    if options.generate_events {
+    // Generate events only if the program actually has events
+    if options.generate_events && utils::program_has_events(program) {
         files.push(events::generate(program, symbols));
     }
 
