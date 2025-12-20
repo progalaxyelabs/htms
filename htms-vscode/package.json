@@ -2,11 +2,11 @@
   "name": "htms-vscode",
   "displayName": "HTMS Language Support",
   "description": "Language support for HTMS (HTM Script) files",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "publisher": "progalaxy-labs",
   "repository": {
     "type": "git",
-    "url": "https://github.com/progalaxy-labs/htms"
+    "url": "https://github.com/progalaxyelabs/htms"
   },
   "engines": {
     "vscode": "^1.80.0"
@@ -67,7 +67,7 @@
     "vscode-languageserver-textdocument": "^1.0.11"
   },
   "optionalDependencies": {
-    "@progalaxyelabs/htms-compiler": "^0.1.0"
+    "@progalaxyelabs/htms-compiler": "^0.2.0"
   },
   "license": "MIT"
 }

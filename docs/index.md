@@ -11,7 +11,7 @@ hero:
       link: /guide/getting-started
     - theme: alt
       text: View on GitHub
-      link: https://github.com/aspect/htms
+      link: https://github.com/progalaxyelabs/htms
 
 features:
   - icon: ⚡

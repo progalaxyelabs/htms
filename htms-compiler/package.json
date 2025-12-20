@@ -4,7 +4,7 @@
   "description": "HTMS (HTM Script) compiler - A declarative language for building web UIs (Rust/WASM)",
   "private": true,
   "scripts": {
-    "build": "wasm-pack build --target nodejs --out-dir pkg",
+    "build": "wasm-pack build --target nodejs --scope progalaxyelabs --out-dir pkg",
     "build:web": "wasm-pack build --target web --out-dir pkg-web",
     "test": "cargo test",
     "clean": "cargo clean && rm -rf pkg pkg-web",
@@ -24,13 +24,13 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/aspect/htms.git",
+    "url": "https://github.com/progalaxyelabs/htms.git",
     "directory": "htms-compiler"
   },
   "bugs": {
-    "url": "https://github.com/aspect/htms/issues"
+    "url": "https://github.com/progalaxyelabs/htms/issues"
   },
-  "homepage": "https://htms.dev",
+  "homepage": "https://github.com/progalaxyelabs/htms",
   "engines": {
     "node": ">=18.0.0"
   },

@@ -1,11 +1,11 @@
 [package]
 name = "htms-compiler"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 authors = ["ProGalaxy Labs"]
 license = "MIT"
 description = "HTMS (HTM Script) compiler - A declarative language for building web UIs"
-repository = "https://github.com/aspect/htms"
+repository = "https://github.com/progalaxyelabs/htms"
 keywords = ["htms", "html", "template", "compiler", "wasm"]
 categories = ["compilers", "wasm", "web-programming"]
 

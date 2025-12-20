@@ -275,4 +275,4 @@ Built with:
 
 ---
 
-**ProGalaxy Labs** | [GitHub](https://github.com/progalaxy-labs) | [Website](https://progalaxy.dev)
+**ProGalaxy Labs** | [GitHub](https://github.com/progalaxyelabs/htms)
