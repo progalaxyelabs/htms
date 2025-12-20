@@ -1,0 +1,46 @@
+// Test HTMS file for extension validation
+
+component Button(text: string, onClick: function) {
+  button [onClick: onClick, class: "btn"] {
+    {{ text }}
+  }
+}
+
+component Card(title: string) {
+  div [class: "card"] {
+    h2 { {{ title }} }
+    @slot
+  }
+}
+
+section Header {
+  header [class: "header"] {
+    h1 { {{ "My App" }} }
+  }
+}
+
+page home "/" {
+  Header
+
+  div [class: "container"] {
+    Card(title: "Welcome") {
+      p { {{ "This is a test page" }} }
+
+      @if ctx.showButton {
+        Button(text: "Click Me", onClick: handleClick)
+      }
+
+      @each ctx.items as item, index {
+        div [class: "item"] {
+          span { {{ item.name }} }
+          span { {{ index }} }
+        }
+      }
+    }
+  }
+}
+
+// This should show an error - undefined component
+page error "/error" {
+  UndefinedComponent
+}

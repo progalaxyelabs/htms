@@ -1,0 +1,85 @@
+name: Build and Publish
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Install wasm-pack
+        run: cargo install wasm-pack
+
+      - name: Build WASM (Node.js target)
+        run: wasm-pack build --target nodejs --out-dir pkg
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Prepare npm package
+        run: |
+          cd pkg
+          # Update package.json for npm
+          cat > package.json << 'EOF'
+          {
+            "name": "@progalaxyelabs/htms-compiler",
+            "version": "${{ github.ref_name }}",
+            "description": "HTMS (HTML Script) compiler - A declarative language for building web UIs",
+            "main": "htms_compiler.js",
+            "types": "htms_compiler.d.ts",
+            "files": [
+              "htms_compiler.js",
+              "htms_compiler.d.ts",
+              "htms_compiler_bg.wasm",
+              "htms_compiler_bg.wasm.d.ts"
+            ],
+            "keywords": ["htms", "html", "template", "compiler", "wasm"],
+            "author": "ProGalaxy Labs",
+            "license": "MIT",
+            "repository": {
+              "type": "git",
+              "url": "https://github.com/progalaxyelabs/htms.git"
+            }
+          }
+          EOF
+
+      - name: Publish to npm
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          cd pkg
+          npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: htms-compiler-wasm
+          path: pkg/
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Run tests
+        run: cargo test
+
+      - name: Run clippy
+        run: cargo clippy -- -D warnings

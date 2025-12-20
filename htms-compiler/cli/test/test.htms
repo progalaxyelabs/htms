@@ -1,0 +1,18 @@
+component NavBar {
+  nav [class: "navbar"] {
+    a [href: "#/"] {{ Home }}
+    a [href: "#/about"] {{ About }}
+  }
+}
+
+page home "/" {
+  NavBar
+  div [class: "hero"] {
+    h1 {{ Welcome to HTMS! }}
+  }
+}
+
+page about "/about" {
+  NavBar
+  div {{ About Page }}
+}

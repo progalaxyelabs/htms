@@ -1,0 +1,50 @@
+{
+  "name": "@progalaxyelabs/htms-compiler",
+  "version": "0.1.0",
+  "description": "HTMS (HTM Script) compiler - A declarative language for building web UIs (Rust/WASM)",
+  "private": true,
+  "scripts": {
+    "build": "wasm-pack build --target nodejs --out-dir pkg",
+    "build:web": "wasm-pack build --target web --out-dir pkg-web",
+    "test": "cargo test",
+    "clean": "cargo clean && rm -rf pkg pkg-web",
+    "publish:wasm": "cd pkg && npm publish --access public"
+  },
+  "keywords": [
+    "htms",
+    "html",
+    "template",
+    "compiler",
+    "ui",
+    "frontend",
+    "handlebars",
+    "stonescriptui"
+  ],
+  "author": "ProGalaxy Labs",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aspect/htms.git",
+    "directory": "htms-compiler"
+  },
+  "bugs": {
+    "url": "https://github.com/aspect/htms/issues"
+  },
+  "homepage": "https://htms.dev",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "typescript": "^5.3.3",
+    "vitest": "^1.0.0",
+    "eslint": "^8.55.0",
+    "@typescript-eslint/eslint-plugin": "^6.13.0",
+    "@typescript-eslint/parser": "^6.13.0"
+  }
+}

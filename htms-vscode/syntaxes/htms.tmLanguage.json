@@ -1,0 +1,258 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "HTMS",
+  "scopeName": "source.htms",
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#declarations" },
+    { "include": "#directives" },
+    { "include": "#elements" },
+    { "include": "#component-refs" },
+    { "include": "#text-content" },
+    { "include": "#attributes" }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.double-slash.htms",
+          "begin": "//",
+          "end": "$"
+        },
+        {
+          "name": "comment.block.htms",
+          "begin": "/\\*",
+          "end": "\\*/"
+        }
+      ]
+    },
+    "declarations": {
+      "patterns": [
+        {
+          "name": "meta.declaration.component.htms",
+          "begin": "\\b(component)\\s+([A-Z][A-Za-z0-9]*)",
+          "beginCaptures": {
+            "1": { "name": "keyword.control.htms" },
+            "2": { "name": "entity.name.type.component.htms" }
+          },
+          "end": "(?<=\\})",
+          "patterns": [
+            { "include": "#parameters" },
+            { "include": "#attributes" },
+            { "include": "#block" }
+          ]
+        },
+        {
+          "name": "meta.declaration.section.htms",
+          "begin": "\\b(section)\\s+([A-Z][A-Za-z0-9]*)",
+          "beginCaptures": {
+            "1": { "name": "keyword.control.htms" },
+            "2": { "name": "entity.name.type.section.htms" }
+          },
+          "end": "(?<=\\})",
+          "patterns": [
+            { "include": "#block" }
+          ]
+        },
+        {
+          "name": "meta.declaration.page.htms",
+          "begin": "\\b(page)\\s+([a-z][a-zA-Z0-9_]*)\\s+(\"[^\"]*\")",
+          "beginCaptures": {
+            "1": { "name": "keyword.control.htms" },
+            "2": { "name": "entity.name.function.page.htms" },
+            "3": { "name": "string.quoted.double.route.htms" }
+          },
+          "end": "(?<=\\})",
+          "patterns": [
+            { "include": "#block" }
+          ]
+        }
+      ]
+    },
+    "directives": {
+      "patterns": [
+        {
+          "name": "meta.directive.if.htms",
+          "begin": "(@if)\\s+",
+          "beginCaptures": {
+            "1": { "name": "keyword.control.conditional.htms" }
+          },
+          "end": "(?<=\\})",
+          "patterns": [
+            { "include": "#expressions" },
+            { "include": "#block" },
+            { "include": "#else" }
+          ]
+        },
+        {
+          "name": "meta.directive.each.htms",
+          "begin": "(@each)\\s+",
+          "beginCaptures": {
+            "1": { "name": "keyword.control.loop.htms" }
+          },
+          "end": "(?<=\\})",
+          "patterns": [
+            { "include": "#expressions" },
+            {
+              "match": "\\b(as)\\s+([a-z][a-zA-Z0-9_]*)(?:\\s*,\\s*([a-z][a-zA-Z0-9_]*))?",
+              "captures": {
+                "1": { "name": "keyword.control.htms" },
+                "2": { "name": "variable.parameter.htms" },
+                "3": { "name": "variable.parameter.htms" }
+              }
+            },
+            { "include": "#block" }
+          ]
+        },
+        {
+          "name": "meta.directive.slot.htms",
+          "match": "@slot",
+          "captures": {
+            "0": { "name": "keyword.control.htms" }
+          }
+        }
+      ]
+    },
+    "else": {
+      "match": "@else",
+      "name": "keyword.control.conditional.htms"
+    },
+    "elements": {
+      "patterns": [
+        {
+          "name": "meta.tag.htms",
+          "begin": "\\b([a-z][a-z0-9-]*)\\b",
+          "beginCaptures": {
+            "1": { "name": "entity.name.tag.html.htms" }
+          },
+          "end": "(?<=\\})|(?=\\s)",
+          "patterns": [
+            { "include": "#attributes" },
+            { "include": "#block" },
+            { "include": "#text-content" }
+          ]
+        }
+      ]
+    },
+    "component-refs": {
+      "patterns": [
+        {
+          "name": "meta.component-ref.htms",
+          "begin": "\\b([A-Z][A-Za-z0-9]*)",
+          "beginCaptures": {
+            "1": { "name": "entity.name.type.component.htms" }
+          },
+          "end": "(?<=\\})|(?=\\s)",
+          "patterns": [
+            { "include": "#parameter-bindings" },
+            { "include": "#block" }
+          ]
+        }
+      ]
+    },
+    "parameters": {
+      "begin": "\\(",
+      "end": "\\)",
+      "patterns": [
+        {
+          "match": "([a-z][a-zA-Z0-9_]*)\\s*:\\s*([a-z][a-zA-Z0-9_]*)",
+          "captures": {
+            "1": { "name": "variable.parameter.htms" },
+            "2": { "name": "variable.other.htms" }
+          }
+        }
+      ]
+    },
+    "parameter-bindings": {
+      "begin": "\\(",
+      "end": "\\)",
+      "patterns": [
+        {
+          "match": "([a-z][a-zA-Z0-9_]*)\\s*:",
+          "captures": {
+            "1": { "name": "variable.parameter.htms" }
+          }
+        },
+        { "include": "#expressions" }
+      ]
+    },
+    "attributes": {
+      "begin": "\\[",
+      "end": "\\]",
+      "patterns": [
+        {
+          "name": "meta.attribute.event.htms",
+          "match": "(on[A-Z][a-zA-Z0-9]*(?:\\.[a-z]+)*)\\s*:",
+          "captures": {
+            "1": { "name": "entity.other.attribute-name.event.htms" }
+          }
+        },
+        {
+          "name": "meta.attribute.bind.htms",
+          "match": "(bind)\\s*:",
+          "captures": {
+            "1": { "name": "entity.other.attribute-name.bind.htms" }
+          }
+        },
+        {
+          "name": "meta.attribute.htms",
+          "match": "([a-z][a-zA-Z0-9-]*)\\s*:",
+          "captures": {
+            "1": { "name": "entity.other.attribute-name.htms" }
+          }
+        },
+        { "include": "#expressions" }
+      ]
+    },
+    "text-content": {
+      "name": "string.template.htms",
+      "begin": "\\{\\{",
+      "end": "\\}\\}",
+      "patterns": [
+        { "include": "#context-paths" }
+      ]
+    },
+    "block": {
+      "begin": "\\{",
+      "end": "\\}",
+      "patterns": [
+        { "include": "$self" }
+      ]
+    },
+    "expressions": {
+      "patterns": [
+        { "include": "#context-paths" },
+        { "include": "#strings" },
+        { "include": "#numbers" },
+        { "include": "#booleans" },
+        { "include": "#operators" },
+        { "include": "#identifiers" }
+      ]
+    },
+    "context-paths": {
+      "name": "variable.other.context.htms",
+      "match": "\\bctx(\\.[a-zA-Z_][a-zA-Z0-9_]*)+"
+    },
+    "strings": {
+      "name": "string.quoted.double.htms",
+      "begin": "\"",
+      "end": "\""
+    },
+    "numbers": {
+      "name": "constant.numeric.htms",
+      "match": "\\b\\d+(\\.\\d+)?\\b"
+    },
+    "booleans": {
+      "name": "constant.language.boolean.htms",
+      "match": "\\b(true|false)\\b"
+    },
+    "operators": {
+      "name": "keyword.operator.htms",
+      "match": "(==|!=|<=|>=|<|>|\\+|-|\\*|/|&&|\\|\\||!|\\?|:)"
+    },
+    "identifiers": {
+      "name": "variable.other.htms",
+      "match": "\\b[a-z][a-zA-Z0-9_]*\\b"
+    }
+  }
+}

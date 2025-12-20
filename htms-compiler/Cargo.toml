@@ -1,0 +1,45 @@
+[package]
+name = "htms-compiler"
+version = "0.1.0"
+edition = "2021"
+authors = ["ProGalaxy Labs"]
+license = "MIT"
+description = "HTMS (HTM Script) compiler - A declarative language for building web UIs"
+repository = "https://github.com/aspect/htms"
+keywords = ["htms", "html", "template", "compiler", "wasm"]
+categories = ["compilers", "wasm", "web-programming"]
+
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+default = ["wasm"]
+wasm = ["wasm-bindgen", "serde-wasm-bindgen", "console_error_panic_hook"]
+
+[dependencies]
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# WASM bindings (optional, for wasm target)
+wasm-bindgen = { version = "0.2", optional = true }
+serde-wasm-bindgen = { version = "0.6", optional = true }
+console_error_panic_hook = { version = "0.1", optional = true }
+
+# Parsing
+logos = "0.14"          # Fast lexer generator
+
+# Error handling
+thiserror = "1.0"
+
+[dev-dependencies]
+wasm-bindgen-test = "0.3"
+
+[profile.release]
+opt-level = "s"         # Optimize for size
+lto = true              # Link-time optimization
+codegen-units = 1       # Better optimization
+strip = true            # Strip symbols

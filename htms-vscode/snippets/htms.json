@@ -1,0 +1,109 @@
+{
+  "Component Declaration": {
+    "prefix": "component",
+    "body": [
+      "component ${1:ComponentName} {",
+      "\t$0",
+      "}"
+    ],
+    "description": "Create a new component"
+  },
+  "Section Declaration": {
+    "prefix": "section",
+    "body": [
+      "section ${1:SectionName} {",
+      "\t$0",
+      "}"
+    ],
+    "description": "Create a new section"
+  },
+  "Page Declaration": {
+    "prefix": "page",
+    "body": [
+      "page ${1:home} \"${2:/}\" {",
+      "\t$0",
+      "}"
+    ],
+    "description": "Create a new page"
+  },
+  "If Statement": {
+    "prefix": "@if",
+    "body": [
+      "@if ${1:ctx.condition} {",
+      "\t$0",
+      "}"
+    ],
+    "description": "Conditional rendering"
+  },
+  "If-Else Statement": {
+    "prefix": "@ifelse",
+    "body": [
+      "@if ${1:ctx.condition} {",
+      "\t$2",
+      "} @else {",
+      "\t$0",
+      "}"
+    ],
+    "description": "If-else conditional"
+  },
+  "Each Loop": {
+    "prefix": "@each",
+    "body": [
+      "@each ${1:ctx.items} as ${2:item} {",
+      "\t$0",
+      "}"
+    ],
+    "description": "Loop over items"
+  },
+  "Each Loop with Index": {
+    "prefix": "@eachi",
+    "body": [
+      "@each ${1:ctx.items} as ${2:item}, ${3:index} {",
+      "\t$0",
+      "}"
+    ],
+    "description": "Loop with index"
+  },
+  "Text Content": {
+    "prefix": "{{",
+    "body": "{{ $0 }}",
+    "description": "Insert text content"
+  },
+  "Element with Class": {
+    "prefix": "div.",
+    "body": [
+      "div [class: \"${1:className}\"] {",
+      "\t$0",
+      "}"
+    ],
+    "description": "Div with class"
+  },
+  "Button with Click": {
+    "prefix": "button",
+    "body": [
+      "button [onClick: ${1:handleClick}] {",
+      "\t{{ ${2:Click Me} }}",
+      "}"
+    ],
+    "description": "Button with click handler"
+  },
+  "Link": {
+    "prefix": "a",
+    "body": [
+      "a [href: \"${1:#/}\"] {",
+      "\t{{ ${2:Link Text} }}",
+      "}"
+    ],
+    "description": "Anchor link"
+  },
+  "Input with Bind": {
+    "prefix": "input",
+    "body": "input [bind: ctx.${1:value}]",
+    "description": "Input with two-way binding"
+  },
+  "Slot": {
+    "prefix": "@slot",
+    "body": "@slot",
+    "description": "Insert slot"
+  }
+}
