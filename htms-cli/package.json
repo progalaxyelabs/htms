@@ -19,7 +19,7 @@
     "compiler",
     "cli"
   ],
-  "author": "ProGalaxy Labs",
+  "author": "ProGalaxy eLabs <info@progalaxyelabs.com>",
   "license": "MIT",
   "dependencies": {
     "@progalaxyelabs/htms-compiler": "^0.4.2",

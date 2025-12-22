@@ -4,6 +4,7 @@
   "description": "Language support for HTMS (HTM Script) files",
   "version": "0.3.0",
   "publisher": "progalaxy-labs",
+  "author": "ProGalaxy eLabs <info@progalaxyelabs.com>",
   "repository": {
     "type": "git",
     "url": "https://github.com/progalaxyelabs/htms"
