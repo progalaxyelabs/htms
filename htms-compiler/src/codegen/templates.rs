@@ -406,15 +406,22 @@ impl TemplateGenerator {
     fn generate_text(&mut self, text: &TextNode, _parent: Option<&str>) -> String {
         let var = self.next_var();
 
-        if text.is_dynamic {
-            let path = strip_ctx(&text.content);
+        // Check if text contains ${...} interpolation patterns
+        let content = &text.content;
+
+        // Debug: print content for troubleshooting
+        // eprintln!("Text content: {:?}", content);
+
+        if content.contains("${") {
+            // Parse and handle variable interpolation
+            let generated = self.interpolate_variables(content);
             self.writeln(&format!(
-                "const {} = document.createTextNode(String(ctx.{}));",
-                var, path
+                "const {} = document.createTextNode({});",
+                var, generated
             ));
         } else {
-            // Escape single quotes in the text
-            let escaped = text.content.replace('\\', "\\\\").replace('\'', "\\'");
+            // Pure literal text - escape single quotes
+            let escaped = content.replace('\\', "\\\\").replace('\'', "\\'");
             self.writeln(&format!(
                 "const {} = document.createTextNode('{}');",
                 var, escaped
@@ -422,6 +429,52 @@ impl TemplateGenerator {
         }
 
         var
+    }
+
+    fn interpolate_variables(&self, text: &str) -> String {
+        use regex::Regex;
+
+        // Regex to match ${ctx.foo.bar}, ${varname}, or ${item.property}
+        // Allows: ctx.path, identifier, or identifier.path
+        let re = Regex::new(r"\$\{([a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z0-9_.]+)?)\}").unwrap();
+
+        let mut parts = Vec::new();
+        let mut last_end = 0;
+
+        for cap in re.captures_iter(text) {
+            let full_match = cap.get(0).unwrap();
+            let var_path = cap.get(1).unwrap().as_str();
+
+            // Add literal text before this variable
+            if full_match.start() > last_end {
+                let literal = &text[last_end..full_match.start()];
+                let escaped = literal.replace('\\', "\\\\").replace('\'', "\\'");
+                parts.push(format!("'{}'", escaped));
+            }
+
+            // Add variable with null coalescing
+            parts.push(format!("String({} ?? 'null')", var_path));
+
+            last_end = full_match.end();
+        }
+
+        // Add remaining literal text
+        if last_end < text.len() {
+            let literal = &text[last_end..];
+            let escaped = literal.replace('\\', "\\\\").replace('\'', "\\'");
+            parts.push(format!("'{}'", escaped));
+        }
+
+        // Join with +
+        if parts.is_empty() {
+            // No variables matched, treat entire text as literal
+            let escaped = text.replace('\\', "\\\\").replace('\'', "\\'");
+            format!("'{}'", escaped)
+        } else if parts.len() == 1 {
+            parts[0].clone()
+        } else {
+            parts.join(" + ")
+        }
     }
 
     fn generate_if(&mut self, stmt: &IfStatement, _parent: Option<&str>) -> String {
@@ -654,11 +707,74 @@ mod tests {
     fn test_dynamic_content() {
         let output = generate_templates(r#"
             component Title {
-                h1 { ctx.title }
+                h1 { {{ ${ctx.title} }} }
             }
         "#);
 
-        assert!(output.contains("document.createTextNode(String(ctx.title))"));
+        assert!(output.contains("document.createTextNode(String(ctx.title ?? 'null'))"));
+    }
+
+    #[test]
+    fn test_literal_text_with_quotes() {
+        let output = generate_templates(r#"
+            component Hello {
+                p { {{ "Hello World" }} }
+            }
+        "#);
+
+        assert!(output.contains("document.createTextNode('\"Hello World\"')"));
+    }
+
+    #[test]
+    fn test_variable_interpolation() {
+        let output = generate_templates("component Stats { p { {{ Total: ${ctx.count} items }} } }");
+
+        assert!(output.contains("'Total: ' + String(ctx.count ?? 'null') + ' items'"));
+    }
+
+    #[test]
+    fn test_escaped_single_quotes() {
+        let output = generate_templates(r#"
+            component Message {
+                p { {{ She said 'hello' }} }
+            }
+        "#);
+
+        assert!(output.contains(r"createTextNode('She said \'hello\'')"));
+    }
+
+    #[test]
+    fn test_literal_variable_name() {
+        let output = generate_templates(r#"
+            component Literal {
+                p { {{ ctx.message }} }
+            }
+        "#);
+
+        assert!(output.contains("createTextNode('ctx.message')"));
+    }
+
+    #[test]
+    fn test_multiple_interpolations() {
+        let output = generate_templates(r#"
+            component User {
+                p { {{ Hello ${ctx.name}, you have ${ctx.count} messages }} }
+            }
+        "#);
+
+        assert!(output.contains("'Hello ' + String(ctx.name ?? 'null') + ', you have ' + String(ctx.count ?? 'null') + ' messages'"));
+    }
+
+    #[test]
+    fn test_invalid_interpolation_pattern() {
+        let output = generate_templates(r#"
+            component CSS {
+                p { {{ Use var(${--color}) for CSS }} }
+            }
+        "#);
+
+        // Invalid pattern should be treated as literal
+        assert!(output.contains("createTextNode('Use var(${--color}) for CSS')"));
     }
 
     #[test]

@@ -90,6 +90,9 @@ pub enum TokenKind {
     #[token("}}")]
     TextClose,
 
+    #[token("${")]
+    InterpolationStart,
+
     // =========================================================================
     // Operators
     // =========================================================================
@@ -217,6 +220,7 @@ impl TokenKind {
             TokenKind::Question => "'?'",
             TokenKind::TextOpen => "'{{'",
             TokenKind::TextClose => "'}}'",
+            TokenKind::InterpolationStart => "'${'",
             TokenKind::Eq => "'=='",
             TokenKind::Ne => "'!='",
             TokenKind::Ge => "'>='",

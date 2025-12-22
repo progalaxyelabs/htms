@@ -78,17 +78,13 @@ pub fn tokenize(source: &str) -> Result<Vec<Token>, Vec<LexerError>> {
                         text_start = span.end;
 
                         // Manually capture text content until we find }}
-                        let mut content_end = text_start;
-                        let source_bytes = source.as_bytes();
-                        while content_end < source_bytes.len() - 1 {
-                            if &source_bytes[content_end..content_end+2] == b"}}" {
-                                break;
-                            }
-                            content_end += 1;
-                        }
-
-                        if content_end < source_bytes.len() - 1 {
-                            text_content = source[text_start..content_end].to_string();
+                        // Use character-based string operations for proper UTF-8 handling
+                        let remaining = &source[text_start..];
+                        if let Some(end_pos) = remaining.find("}}") {
+                            text_content = remaining[..end_pos].to_string();
+                        } else {
+                            // No closing }}, capture rest of content
+                            text_content = remaining.to_string();
                         }
                     }
                     TokenKind::Newline => {
@@ -132,7 +128,8 @@ pub fn tokenize(source: &str) -> Result<Vec<Token>, Vec<LexerError>> {
             Err(()) => {
                 // Handle text content mode for errors
                 if in_text_content {
-                    text_content.push_str(slice);
+                    // Skip error tokens when in text content mode
+                    // Text is already captured manually at TextOpen
                     if slice == "\n" {
                         line += 1;
                         line_start = span.end;
