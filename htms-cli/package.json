@@ -1,6 +1,6 @@
 {
   "name": "@progalaxyelabs/htms-cli",
-  "version": "0.3.0",
+  "version": "0.4.1",
   "description": "CLI for HTMS compiler",
   "type": "module",
   "bin": {
@@ -14,13 +14,17 @@
   "scripts": {
     "test": "node --test"
   },
-  "keywords": ["htms", "compiler", "cli"],
+  "keywords": [
+    "htms",
+    "compiler",
+    "cli"
+  ],
   "author": "ProGalaxy Labs",
   "license": "MIT",
   "dependencies": {
-    "@progalaxyelabs/htms-compiler": "^0.3.0",
-    "commander": "^11.0.0",
+    "@progalaxyelabs/htms-compiler": "^0.4.1",
     "chokidar": "^3.5.0",
+    "commander": "^11.0.0",
     "picocolors": "^1.0.0"
   },
   "engines": {
