@@ -146,3 +146,17 @@ fn test_text_content_invalid_interpolation_pattern() {
     assert_eq!(tokens[1].value, " Use var(${--color}) for CSS ");
     assert_eq!(tokens[2].kind, TokenKind::TextClose);
 }
+
+#[test]
+fn test_text_content_times_symbol() {
+    // Test that × (multiplication sign) is handled correctly as a single character
+    let source = "{{ × }}";
+    let tokens = tokenize(source).unwrap();
+
+    assert_eq!(tokens[0].kind, TokenKind::TextOpen);
+    assert_eq!(tokens[1].kind, TokenKind::TextContent);
+    assert_eq!(tokens[1].value, " × ");
+    // Verify it's not duplicated
+    assert_eq!(tokens[1].value.trim(), "×", "Times symbol should appear exactly once");
+    assert_eq!(tokens[2].kind, TokenKind::TextClose);
+}

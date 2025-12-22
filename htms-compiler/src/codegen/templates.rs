@@ -409,9 +409,6 @@ impl TemplateGenerator {
         // Check if text contains ${...} interpolation patterns
         let content = &text.content;
 
-        // Debug: print content for troubleshooting
-        // eprintln!("Text content: {:?}", content);
-
         if content.contains("${") {
             // Parse and handle variable interpolation
             let generated = self.interpolate_variables(content);

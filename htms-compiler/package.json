@@ -5,10 +5,11 @@
   "private": true,
   "scripts": {
     "build": "wasm-pack build --target nodejs --scope progalaxyelabs --out-dir pkg",
+    "build:release": "wasm-pack build --target nodejs --scope progalaxyelabs --out-dir pkg --release",
     "build:web": "wasm-pack build --target web --out-dir pkg-web",
     "test": "cargo test",
     "clean": "cargo clean && rm -rf pkg pkg-web",
-    "publish:wasm": "cd pkg && npm publish --access public"
+    "publish:wasm": "npm run build:release && cd pkg && npm publish --access public"
   },
   "keywords": [
     "htms",

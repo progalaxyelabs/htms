@@ -1,8 +1,8 @@
 [package]
 name = "htms-compiler"
-version = "0.4.1"
+version = "0.4.2"
 edition = "2021"
-authors = ["ProGalaxy Labs"]
+authors = ["ProGalaxy eLabs <info@progalaxyelabs.com>"]
 license = "MIT"
 description = "HTMS (HTM Script) compiler - A declarative language for building web UIs"
 repository = "https://github.com/progalaxyelabs/htms"
