@@ -23,9 +23,12 @@ program
 // Compile command
 program
   .command('compile')
-  .description('Compile .htms file to TypeScript')
+  .description('Compile .htms file to TypeScript or HTML')
   .argument('<input>', 'Input .htms file')
   .option('-o, --output <dir>', 'Output directory', 'dist')
+  .option('-f, --format <format>', 'Output format: typescript or html', 'typescript')
+  .option('-t, --template <file>', 'HTML template file to inject into (only for html format)')
+  .option('-s, --split-templates', 'Split templates into separate files for lazy loading (only for html format)')
   .option('-w, --watch', 'Watch for changes')
   .option('-q, --quiet', 'Suppress output')
   .action(async (input, options) => {

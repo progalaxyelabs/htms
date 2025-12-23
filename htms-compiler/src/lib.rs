@@ -72,22 +72,54 @@ pub struct CompileResult {
     pub success: bool,
 }
 
+/// Output format for compilation
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum OutputFormat {
+    /// Generate TypeScript/JavaScript (default)
+    Typescript,
+    /// Generate static HTML
+    Html,
+}
+
+impl Default for OutputFormat {
+    fn default() -> Self {
+        Self::Typescript
+    }
+}
+
 /// Compile options
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CompileOptions {
-    /// Generate router.ts
+    /// Output format (typescript or html)
+    #[serde(default)]
+    pub output_format: OutputFormat,
+    /// Generate router.ts (only for typescript output)
     #[serde(default = "default_true")]
     pub generate_router: bool,
-    /// Generate events.ts
+    /// Generate events.ts (only for typescript output)
     #[serde(default = "default_true")]
     pub generate_events: bool,
+    /// HTML template content to inject into (only for html output)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub template_html: Option<String>,
+    /// Source filename (used for HTML output filename)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub source_filename: Option<String>,
+    /// Split templates into separate files for lazy loading (only for html output)
+    #[serde(default)]
+    pub split_templates: bool,
 }
 
 impl Default for CompileOptions {
     fn default() -> Self {
         Self {
+            output_format: OutputFormat::Typescript,
             generate_router: true,
             generate_events: true,
+            template_html: None,
+            source_filename: None,
+            split_templates: false,
         }
     }
 }

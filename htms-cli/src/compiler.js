@@ -1,4 +1,4 @@
-import { compile_wasm, init } from '@progalaxyelabs/htms-compiler';
+import { compile_wasm, compile_with_options_wasm, init } from '@progalaxyelabs/htms-compiler';
 import { readFile, writeFile, mkdir } from 'fs/promises';
 import { dirname, join, basename } from 'path';
 import { printDiagnostics } from './format-errors.js';
@@ -14,7 +14,7 @@ async function ensureWasmInit() {
 }
 
 /**
- * Compile HTMS file to TypeScript
+ * Compile HTMS file to TypeScript or HTML
  * @param {string} inputPath - Path to .htms file
  * @param {string} outputDir - Output directory for generated files
  * @param {object} options - Compilation options
@@ -26,8 +26,27 @@ export async function compileFile(inputPath, outputDir, options = {}) {
   // Read source file
   const source = await readFile(inputPath, 'utf-8');
 
+  // Read template file if provided
+  let templateHtml = undefined;
+  if (options.template) {
+    templateHtml = await readFile(options.template, 'utf-8');
+  }
+
+  // Get source filename for HTML output (e.g., "app.htms" -> "app.html")
+  const sourceFilename = basename(inputPath, '.htms') + '.html';
+
+  // Prepare compile options
+  const compileOptions = {
+    output_format: options.format || 'typescript',
+    generate_router: true,
+    generate_events: true,
+    template_html: templateHtml,
+    source_filename: sourceFilename,
+    split_templates: options.splitTemplates || false,
+  };
+
   // Compile using WASM
-  const result = compile_wasm(source);
+  const result = compile_with_options_wasm(source, compileOptions);
 
   // Print diagnostics
   if (result.diagnostics && result.diagnostics.length > 0) {
