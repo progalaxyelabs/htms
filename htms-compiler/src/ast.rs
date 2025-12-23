@@ -72,6 +72,25 @@ pub struct Element {
     pub tag: String,
     pub attributes: Vec<Attribute>,
     pub children: Vec<Node>,
+    pub for_directive: Option<ForDirective>,
+    pub if_directive: Option<IfDirective>,
+    pub loc: Location,
+}
+
+/// For directive: `@for(ctx.items as item, index)`
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ForDirective {
+    pub iterable: Expression,
+    pub item_name: String,
+    pub index_name: Option<String>,
+    pub loc: Location,
+}
+
+/// If directive: `@if(ctx.condition)`
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IfDirective {
+    pub condition: Expression,
+    pub else_element: Option<Box<Element>>,
     pub loc: Location,
 }
 
