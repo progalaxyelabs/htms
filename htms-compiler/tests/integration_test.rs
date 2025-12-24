@@ -14,8 +14,12 @@ component TodoItem {
     let (symbols, _warnings) = analyzer::analyze(&ast);
 
     let options = CompileOptions {
+        output_format: OutputFormat::Typescript,
         generate_router: false,
         generate_events: false,
+        template_html: None,
+        source_filename: None,
+        split_templates: false,
     };
 
     let files = codegen::generate(&ast, &symbols, &options);
@@ -51,8 +55,12 @@ page home "/" {
     let (symbols, _warnings) = analyzer::analyze(&ast);
 
     let options = CompileOptions {
+        output_format: OutputFormat::Typescript,
         generate_router: false,
         generate_events: false,
+        template_html: None,
+        source_filename: None,
+        split_templates: false,
     };
 
     let files = codegen::generate(&ast, &symbols, &options);
@@ -91,8 +99,12 @@ fn test_user_app_htms_reproduction() {
     let (symbols, _warnings) = analyzer::analyze(&ast);
 
     let options = CompileOptions {
+        output_format: OutputFormat::Typescript,
         generate_router: false,
         generate_events: false,
+        template_html: None,
+        source_filename: None,
+        split_templates: false,
     };
 
     let files = codegen::generate(&ast, &symbols, &options);
