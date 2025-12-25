@@ -263,6 +263,20 @@ impl<'a> Parser<'a> {
             Vec::new()
         };
 
+        // Check for @for directive: @for(ctx.todos as todo, index)
+        let for_directive = if self.check(TokenKind::For) {
+            Some(self.for_directive()?)
+        } else {
+            None
+        };
+
+        // Check for @if directive: @if(ctx.condition)
+        let if_directive = if self.check(TokenKind::If) {
+            Some(self.if_directive()?)
+        } else {
+            None
+        };
+
         // Check for shorthand text: button [onClick: submit] {{ Send }}
         let children = if self.check(TokenKind::TextOpen) {
             // Shorthand: text directly after element/attributes
@@ -277,6 +291,8 @@ impl<'a> Parser<'a> {
             tag,
             attributes,
             children,
+            for_directive,
+            if_directive,
             loc: self.location_from(start),
         })
     }
@@ -459,6 +475,53 @@ impl<'a> Parser<'a> {
             item_name,
             index_name,
             body,
+            loc: self.location_from(start),
+        })
+    }
+
+    fn for_directive(&mut self) -> Result<ForDirective, ParseError> {
+        let start = self.current_location();
+        self.consume(TokenKind::For, "Expected '@for'")?;
+
+        self.consume(TokenKind::LParen, "Expected '(' after @for")?;
+
+        let iterable = self.expression()?;
+
+        self.consume(TokenKind::As, "Expected 'as'")?;
+
+        let item_name = self.consume(TokenKind::Identifier, "Expected item name")?;
+        let item_name = item_name.value.clone();
+
+        let index_name = if self.match_token(TokenKind::Comma) {
+            let name = self.consume(TokenKind::Identifier, "Expected index name")?;
+            Some(name.value.clone())
+        } else {
+            None
+        };
+
+        self.consume(TokenKind::RParen, "Expected ')' after @for directive")?;
+
+        Ok(ForDirective {
+            iterable,
+            item_name,
+            index_name,
+            loc: self.location_from(start),
+        })
+    }
+
+    fn if_directive(&mut self) -> Result<IfDirective, ParseError> {
+        let start = self.current_location();
+        self.consume(TokenKind::If, "Expected '@if'")?;
+
+        self.consume(TokenKind::LParen, "Expected '(' after @if")?;
+
+        let condition = self.expression()?;
+
+        self.consume(TokenKind::RParen, "Expected ')' after @if condition")?;
+
+        Ok(IfDirective {
+            condition,
+            else_element: None,  // @else support can be added later
             loc: self.location_from(start),
         })
     }

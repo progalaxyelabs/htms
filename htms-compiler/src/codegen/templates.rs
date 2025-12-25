@@ -24,6 +24,10 @@ struct TemplateGenerator {
     indent: usize,
     var_counter: usize,
     has_events: bool,
+    list_functions: Vec<(String, Element, ForDirective)>, // (name, element, directive)
+    list_counter: usize,
+    conditional_functions: Vec<(String, Element, IfDirective)>, // (name, element, directive)
+    conditional_counter: usize,
 }
 
 impl TemplateGenerator {
@@ -33,6 +37,10 @@ impl TemplateGenerator {
             indent: 0,
             var_counter: 0,
             has_events: false,
+            list_functions: Vec::new(),
+            list_counter: 0,
+            conditional_functions: Vec::new(),
+            conditional_counter: 0,
         }
     }
 
@@ -68,6 +76,20 @@ impl TemplateGenerator {
                 Declaration::Section(s) => self.generate_section(s),
                 Declaration::Page(p) => self.generate_page(p),
             }
+            self.writeln("");
+        }
+
+        // Generate list functions for @for directives
+        let list_fns = self.list_functions.clone(); // Clone to avoid borrow issues
+        for (name, element, directive) in list_fns {
+            self.generate_list_function(&name, &element, &directive);
+            self.writeln("");
+        }
+
+        // Generate conditional functions for @if directives
+        let conditional_fns = self.conditional_functions.clone();
+        for (name, element, directive) in conditional_fns {
+            self.generate_conditional_function(&name, &element, &directive);
             self.writeln("");
         }
     }
@@ -189,6 +211,93 @@ impl TemplateGenerator {
     }
 
     fn generate_element(&mut self, el: &Element, _parent: Option<&str>) -> String {
+        // Check if this element has an @if directive
+        if let Some(if_directive) = &el.if_directive {
+            // Generate a name for the conditional function
+            let function_name = if let Some(id_attr) = el.attributes.iter().find(|a| a.name == "id") {
+                if let Expression::String(s) = &id_attr.value {
+                    s.value.split(&['-', '_'][..])
+                        .filter(|s| !s.is_empty())
+                        .map(|s| {
+                            let mut c = s.chars();
+                            match c.next() {
+                                None => String::new(),
+                                Some(f) => f.to_uppercase().collect::<String>() + c.as_str(),
+                            }
+                        })
+                        .collect()
+                } else {
+                    format!("Conditional{}", self.conditional_counter)
+                }
+            } else {
+                format!("{}If{}",
+                    el.tag.chars().next().unwrap().to_uppercase().to_string() + &el.tag[1..],
+                    self.conditional_counter
+                )
+            };
+
+            self.conditional_counter += 1;
+
+            // Store the conditional function for later generation
+            self.conditional_functions.push((function_name.clone(), el.clone(), if_directive.clone()));
+
+            // Create comment placeholder (element will be created conditionally)
+            let var = self.next_var();
+            self.writeln(&format!(
+                "const {} = document.createComment('conditional: {}');",
+                var, function_name
+            ));
+
+            return var;
+        }
+
+        // Check if this element has a @for directive
+        if let Some(for_directive) = &el.for_directive {
+            // Generate a name for the list function based on the element's ID or tag
+            let function_name = if let Some(id_attr) = el.attributes.iter().find(|a| a.name == "id") {
+                // Use ID if available
+                if let Expression::String(s) = &id_attr.value {
+                    // Convert kebab-case or snake_case to PascalCase
+                    s.value.split(&['-', '_'][..])
+                        .filter(|s| !s.is_empty())
+                        .map(|s| {
+                            let mut c = s.chars();
+                            match c.next() {
+                                None => String::new(),
+                                Some(f) => f.to_uppercase().collect::<String>() + c.as_str(),
+                            }
+                        })
+                        .collect()
+                } else {
+                    format!("List{}", self.list_counter)
+                }
+            } else {
+                format!("{}List{}",
+                    el.tag.chars().next().unwrap().to_uppercase().to_string() + &el.tag[1..],
+                    self.list_counter
+                )
+            };
+
+            self.list_counter += 1;
+
+            // Store the list function for later generation
+            self.list_functions.push((function_name.clone(), el.clone(), for_directive.clone()));
+
+            // Create placeholder container
+            let var = self.next_var();
+            self.writeln(&format!(
+                "const {} = document.createElement('{}');",
+                var, el.tag
+            ));
+
+            // Set attributes (but not children - they're in the list function)
+            for attr in &el.attributes {
+                self.generate_attribute(&var, attr);
+            }
+
+            return var;
+        }
+
         let var = self.next_var();
 
         // Create element
@@ -581,6 +690,114 @@ impl TemplateGenerator {
         }
 
         var
+    }
+
+    fn generate_list_function(&mut self, name: &str, el: &Element, directive: &ForDirective) {
+        self.reset_vars();
+
+        let iterable = self.expr_to_js(&directive.iterable);
+        let item = &directive.item_name;
+
+        // Generate function signature
+        self.writeln(&format!(
+            "export function {}(ctx: {{ {}: any[] }}): HTMLElement[] {{",
+            name,
+            // Extract the array property name from the iterable expression
+            strip_ctx(&iterable)
+        ));
+        self.indent += 1;
+
+        // Generate map function that creates elements
+        if let Some(index) = &directive.index_name {
+            self.writeln(&format!(
+                "return {}.map(({}, {}) => {{",
+                iterable, item, index
+            ));
+        } else {
+            self.writeln(&format!(
+                "return {}.map(({}) => {{",
+                iterable, item
+            ));
+        }
+
+        self.indent += 1;
+
+        // Create the element for each item
+        let var = self.next_var();
+        self.writeln(&format!(
+            "const {} = document.createElement('{}');",
+            var, el.tag
+        ));
+
+        // Don't set ID or attributes that should be unique per item
+        // Only set class and other repeatable attributes
+        for attr in &el.attributes {
+            if attr.name != "id" {  // Skip id attribute for list items
+                self.generate_attribute(&var, attr);
+            }
+        }
+
+        // Add children
+        for child in &el.children {
+            let child_var = self.generate_node(child, Some(&var));
+            self.writeln(&format!("{}.appendChild({});", var, child_var));
+        }
+
+        // Return the element
+        self.writeln(&format!("return {};", var));
+
+        self.indent -= 1;
+        self.writeln("});");
+
+        self.indent -= 1;
+        self.writeln("}");
+    }
+
+    fn generate_conditional_function(&mut self, name: &str, el: &Element, directive: &IfDirective) {
+        self.reset_vars();
+
+        let condition = self.expr_to_js(&directive.condition);
+
+        // Generate function signature
+        self.writeln(&format!(
+            "export function {}(ctx: Context): HTMLElement | null {{",
+            name
+        ));
+        self.indent += 1;
+
+        // Check condition
+        self.writeln(&format!("if ({}) {{", condition));
+        self.indent += 1;
+
+        // Create the element
+        let var = self.next_var();
+        self.writeln(&format!(
+            "const {} = document.createElement('{}');",
+            var, el.tag
+        ));
+
+        // Set attributes
+        for attr in &el.attributes {
+            self.generate_attribute(&var, attr);
+        }
+
+        // Add children
+        for child in &el.children {
+            let child_var = self.generate_node(child, Some(&var));
+            self.writeln(&format!("{}.appendChild({});", var, child_var));
+        }
+
+        // Return the element
+        self.writeln(&format!("return {};", var));
+
+        self.indent -= 1;
+        self.writeln("}");
+
+        // Return null if condition is false
+        self.writeln("return null;");
+
+        self.indent -= 1;
+        self.writeln("}");
     }
 
     // =========================================================================

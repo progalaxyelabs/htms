@@ -48,6 +48,9 @@ pub enum TokenKind {
     #[token("@each")]
     Each,
 
+    #[token("@for")]
+    For,
+
     #[token("@slot")]
     Slot,
 
@@ -207,6 +210,7 @@ impl TokenKind {
             TokenKind::If => "'@if'",
             TokenKind::Else => "'@else'",
             TokenKind::Each => "'@each'",
+            TokenKind::For => "'@for'",
             TokenKind::Slot => "'@slot'",
             TokenKind::LBracket => "'['",
             TokenKind::RBracket => "']'",
