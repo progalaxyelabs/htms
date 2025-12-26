@@ -1,16 +1,15 @@
-import { compile_wasm, compile_with_options_wasm, init } from '@progalaxyelabs/htms-compiler';
+import { compile_wasm, compile_with_options_wasm } from '@progalaxyelabs/htms-compiler';
 import { readFile, writeFile, mkdir } from 'fs/promises';
 import { dirname, join, basename } from 'path';
+import { fileURLToPath } from 'url';
 import { printDiagnostics } from './format-errors.js';
 import pc from 'picocolors';
 
-// Initialize WASM module
-let wasmInitialized = false;
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+// WASM is automatically initialized when the module is loaded
 async function ensureWasmInit() {
-  if (!wasmInitialized) {
-    await init();
-    wasmInitialized = true;
-  }
+  // No-op: WASM loads synchronously in Node.js target
 }
 
 /**

@@ -30,7 +30,8 @@ pub fn generate(program: &Program, _symbols: &SymbolTable) -> GeneratedFile {
     output.push_str("      }\n");
     output.push_str("    };\n");
     output.push_str("    window.addEventListener('hashchange', handleRoute);\n");
-    output.push_str("    handleRoute();\n");
+    output.push_str("    // Delay initial render to allow context to be set\n");
+    output.push_str("    setTimeout(handleRoute, 0);\n");
     output.push_str("  }\n");
     output.push_str("}\n\n");
 
@@ -63,7 +64,7 @@ pub fn generate(program: &Program, _symbols: &SymbolTable) -> GeneratedFile {
     output.push_str("// Application context\n");
     output.push_str("let context: Record<string, unknown> = {};\n");
     output.push_str("let currentPage: string = '';\n");
-    output.push_str("const appContainer = document.getElementById('app');\n\n");
+    output.push_str("let appContainer: HTMLElement | null = null;\n\n");
 
     // Context functions
     output.push_str("export function getContext(): Record<string, unknown> {\n");
@@ -75,18 +76,21 @@ pub fn generate(program: &Program, _symbols: &SymbolTable) -> GeneratedFile {
     output.push_str("}\n\n");
 
     output.push_str("export function rerender(): void {\n");
+    output.push_str("  if (!appContainer) {\n");
+    output.push_str("    appContainer = document.getElementById('app');\n");
+    output.push_str("  }\n");
     output.push_str("  if (currentPage && appContainer) {\n");
     output.push_str("    const renderer = routes[currentPage];\n");
     output.push_str("    if (renderer) {\n");
     output.push_str("      appContainer.innerHTML = '';\n");
-    output.push_str("      appContainer.appendChild(renderer(context));\n");
+    output.push_str("      renderer(context, appContainer);\n");
     output.push_str("    }\n");
     output.push_str("  }\n");
     output.push_str("}\n\n");
 
     // Routes object
     output.push_str("// Route definitions\n");
-    output.push_str("const routes: Record<string, (ctx: Record<string, unknown>) => HTMLElement> = {\n");
+    output.push_str("const routes: Record<string, (ctx: Record<string, unknown>, container: HTMLElement) => void> = {\n");
 
     for (name, route) in &pages {
         output.push_str(&format!(
@@ -101,10 +105,13 @@ pub fn generate(program: &Program, _symbols: &SymbolTable) -> GeneratedFile {
     // Render function
     output.push_str("function renderPage(route: string): void {\n");
     output.push_str("  currentPage = route;\n");
+    output.push_str("  if (!appContainer) {\n");
+    output.push_str("    appContainer = document.getElementById('app');\n");
+    output.push_str("  }\n");
     output.push_str("  const renderer = routes[route];\n");
     output.push_str("  if (renderer && appContainer) {\n");
     output.push_str("    appContainer.innerHTML = '';\n");
-    output.push_str("    appContainer.appendChild(renderer(context));\n");
+    output.push_str("    renderer(context, appContainer);\n");
     output.push_str("  } else if (appContainer) {\n");
     output.push_str("    const el = document.createElement('h1');\n");
     output.push_str("    el.textContent = '404 - Page Not Found';\n");

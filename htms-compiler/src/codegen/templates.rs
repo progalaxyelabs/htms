@@ -64,6 +64,7 @@ impl TemplateGenerator {
         self.writeln("");
         if self.has_events {
             self.writeln("import { actions } from './actions';");
+            self.writeln("import { getContext, rerender } from './router';");
             self.writeln("");
         }
         self.writeln("export type Context = Record<string, unknown>;");
@@ -169,7 +170,7 @@ impl TemplateGenerator {
         self.reset_vars();
 
         self.writeln(&format!(
-            "export function {}Page(ctx: Context): HTMLElement {{",
+            "export function {}Page(ctx: Context, container: HTMLElement): void {{",
             capitalize(&page.name)
         ));
 
@@ -177,16 +178,14 @@ impl TemplateGenerator {
 
         if page.body.len() == 1 {
             let root_var = self.generate_node(&page.body[0], None);
-            self.writeln(&format!("return {};", root_var));
+            self.writeln(&format!("container.appendChild({});", root_var));
         } else {
             self.writeln("const fragment = document.createDocumentFragment();");
             for node in &page.body {
                 let var = self.generate_node(node, None);
                 self.writeln(&format!("fragment.appendChild({});", var));
             }
-            self.writeln("const root = document.createElement('div');");
-            self.writeln("root.appendChild(fragment);");
-            self.writeln("return root;");
+            self.writeln("container.appendChild(fragment);");
         }
 
         self.indent -= 1;
@@ -438,11 +437,10 @@ impl TemplateGenerator {
             _ => return,
         };
 
-        // Build event handler
+        // Generate addEventListener with proper context handling
         self.writeln(&format!("{}.addEventListener('{}', (e) => {{", el_var, event_name));
         self.indent += 1;
 
-        // Apply modifiers
         if modifiers.contains(&"prevent") {
             self.writeln("e.preventDefault();");
         }
@@ -450,28 +448,46 @@ impl TemplateGenerator {
             self.writeln("e.stopPropagation();");
         }
 
-        // Call action
+        // Import context from context module
+        self.writeln("const currentCtx = getContext();");
+
+        // Create ActionContext wrapper
+        self.writeln("const actionCtx = {");
+        self.indent += 1;
+        self.writeln("data: currentCtx,");
+        self.writeln("rerender: () => { rerender(); }");
+        self.indent -= 1;
+        self.writeln("};");
+
+        // Call the action
         if args.is_empty() {
-            self.writeln(&format!("actions.{}(ctx, e);", action));
+            // Simple action without arguments
+            self.writeln(&format!("const actionFn = actions.{};", action));
+            self.writeln("if (typeof actionFn === 'function') {");
+            self.indent += 1;
+            self.writeln("actionFn(actionCtx, e);");
+            self.indent -= 1;
+            self.writeln("}");
         } else {
+            // Parameterized action - curry the arguments
             let args_str: Vec<String> = args.iter()
                 .map(|a| self.expr_to_js(a))
                 .collect();
-            self.writeln(&format!(
-                "actions.{}({})(({{ data: ctx, rerender: () => {{}} }}), e);",
-                action,
-                args_str.join(", ")
-            ));
+            self.writeln(&format!("const actionFn = actions.{}({});", action, args_str.join(", ")));
+            self.writeln("if (typeof actionFn === 'function') {");
+            self.indent += 1;
+            self.writeln("actionFn(actionCtx, e);");
+            self.indent -= 1;
+            self.writeln("}");
         }
 
         self.indent -= 1;
-        self.writeln("});");
 
-        // Handle once modifier
+        // Add once flag if present
         if modifiers.contains(&"once") {
-            self.writeln(&format!(
-                "// Note: 'once' modifier - consider using {{ once: true }} option",
-            ));
+            self.writeln("}, { once: true });");
+        } else {
+            self.writeln("});");
         }
     }
 

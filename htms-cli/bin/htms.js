@@ -58,6 +58,7 @@ program
       }
     } catch (error) {
       console.error(pc.red('Error:'), error.message);
+      console.error(error.stack);
       process.exit(1);
     }
   });
