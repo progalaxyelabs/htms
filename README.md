@@ -256,6 +256,7 @@ HTMS generates pure DOM API calls instead of innerHTML or template strings:
 - [Language Reference](docs/) - Full language syntax
 - [CLI Guide](htms-compiler/cli/README.md) - Command-line usage
 - [Publishing Guide](PUBLISHING.md) - How to publish packages
+- [Changelog](CHANGELOG.md) - Version history and release notes
 
 ## Contributing
 
